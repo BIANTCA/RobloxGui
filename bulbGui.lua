@@ -1,22 +1,3 @@
--- BulbGui v6.0 — "Sidebar Bento"
--- * Sidebar kiri = TAB (menu utama). Klik tab -> halaman tampil di kanan.
--- * SECTION = kartu "bento" di dalam halaman (2 kolom jika lebar, 1 kolom jika sempit).
--- * Elemen yang dibuat setelah CreateSection otomatis masuk ke kartu itu
---   sampai CreateSection berikutnya (atau panggil tab:EndSection()).
--- * Elemen tanpa section tampil di bagian atas halaman (full width).
--- * Search bar (Ctrl+K) memfilter kartu / elemen, otomatis pindah ke tab yang cocok.
--- * 3 tema: Obsidian Cyber, Emerald Matrix, Midnight Crimson (Settings > Theme).
--- * Window punya minimize, close, resize, drag, tombol bulat (toggle), FPS | ping.
--- * API IDENTIK dengan V5: Init, CreateTab, CreateSection, EndSection, CreateButton,
---   CreateToggle, CreateSlider, CreateDropdown, CreateInput, CreateKeybind,
---   CreateParagraph, Notify, ConfirmationAction, CreateSettings*.
--- Opsi baru (opsional):
---   Init({Theme = "Emerald Matrix", InitialScale = 0.6, Badge = "BETA", Status = "Ready",
---         QuickActions = true, ToggleKey = Enum.KeyCode.RightShift})
---   CreateTab({Name=..., Icon=..., Description=..., Expanded=true})  -- Expanded = tab dibuka duluan
---   CreateSection({Name=..., Description=..., Icon=..., Collapsed=true})
--- Hapus tab: tahan tombol tab 0.8 detik (mouse / touch).
-
 local BulbGui = {}
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
@@ -28,9 +9,6 @@ local RunService = game:GetService("RunService")
 local Stats = game:GetService("Stats")
 local TVersion = 6.0
 
--- ============================================
--- TEMA
--- ============================================
 local THEMES = {
 	{Name = "Obsidian Cyber", bg950 = "#050810", bg900 = "#0A0F1C", bg850 = "#0F1629", bg800 = "#141D35", border = "#1E293B", acc = "#06B6D4", acc2 = "#6366F1"},
 	{Name = "Emerald Matrix", bg950 = "#040A08", bg900 = "#08120F", bg850 = "#0D1B17", bg800 = "#12251F", border = "#1B362D", acc = "#10B981", acc2 = "#14B8A6"},
@@ -65,7 +43,6 @@ local function findTheme(name)
 end
 setPalette(THEMES[1])
 
--- registry: properti yang mengikuti tema
 local bindings = {}
 local function bind(inst, prop, src)
 	local fn = type(src) == "function" and src or function() return T[src] end
@@ -73,18 +50,15 @@ local function bind(inst, prop, src)
 	bindings[#bindings + 1] = {inst, prop, fn}
 end
 
-local P = 12 -- padding bayangan window (tiap sisi)
+local P = 12
 local SB_W, SB_RAIL = 176, 56
 local TOP_H = 56
 local NAV_Y = TOP_H + 10
-local SET_H = 58 -- ruang tab Settings di bawah sidebar
+local SET_H = 58
 
 local F_B, F_M, F_R, F_C = Enum.Font.GothamBold, Enum.Font.GothamMedium, Enum.Font.Gotham, Enum.Font.Code
 local LEFT = Enum.TextXAlignment.Left
 
--- ============================================
--- HELPERS
--- ============================================
 local function smoothTween(obj, props, duration)
 	local info = TweenInfo.new(duration or 0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 	TweenService:Create(obj, info, props):Play()
@@ -146,7 +120,6 @@ local function measure(str, size, font)
 	return TextService:GetTextSize(tostring(str), size, font, Vector2.new(1000, 40)).X
 end
 
--- Baris elemen (tinggi 40). Warna menyesuaikan: di dalam kartu = bg900, di halaman = bg850
 local function makeRow(parent, height)
 	local F = Instance.new("Frame")
 	F.Size = UDim2.new(1, 0, 0, height)
@@ -160,7 +133,6 @@ local function makeRow(parent, height)
 	return F, S
 end
 
--- Flow: elemen kecil (toggle / button) disusun 1-3 per baris sesuai panjang judul
 local flowOf = setmetatable({}, {__mode = "k"})
 local function getFlow(parent)
 	local f = flowOf[parent]
@@ -242,7 +214,6 @@ local function getFlow(parent)
 	return f
 end
 
--- Description: di bawah title
 local function addDescription(frame, lbl, description)
 	if not description or description == "" then return end
 	frame.Size = UDim2.new(frame.Size.X.Scale, frame.Size.X.Offset, 0, frame.Size.Y.Offset + 14)
@@ -261,19 +232,15 @@ local function addDescription(frame, lbl, description)
 	return Desc
 end
 
--- ============================================
--- PAGE + KARTU (SECTION)
--- ============================================
-local currentBody = setmetatable({}, {__mode = "k"}) -- container -> body section aktif
-local cardByBody = setmetatable({}, {__mode = "k"})  -- body kartu -> kartu
-local pageByLoose = setmetatable({}, {__mode = "k"}) -- frame loose -> page
+local currentBody = setmetatable({}, {__mode = "k"})
+local cardByBody = setmetatable({}, {__mode = "k"})
+local pageByLoose = setmetatable({}, {__mode = "k"})
 
 local function getParent(self, config)
 	local container = (config and config.Parent) or self.TabContent
 	return currentBody[container] or container
 end
 
--- daftarkan elemen untuk search + daftar fungsi di kartu
 local function reg(parent, frame, name)
 	local card = cardByBody[parent]
 	if card then
@@ -302,7 +269,7 @@ local function styleScroll(sf)
 	pad.PaddingLeft = UDim.new(0, 14)
 	pad.PaddingRight = UDim.new(0, 14)
 	pad.PaddingTop = UDim.new(0, 12)
-	pad.PaddingBottom = UDim.new(0, 30) -- ruang untuk resize handle
+	pad.PaddingBottom = UDim.new(0, 30)
 	pad.Parent = sf
 	return layout
 end
@@ -389,7 +356,6 @@ local function buildPage(parent, title, desc)
 		end
 	end
 
-	-- bagi kartu ke 2 kolom (greedy berdasar bobot); 1 kolom jika Compact
 	function page.Relayout()
 		local cols = {ColL, ColR}
 		local weights = {0, 0}
@@ -429,7 +395,6 @@ local function buildPage(parent, title, desc)
 		page.Request()
 	end
 
-	-- filter search; return jumlah yang tampil
 	function page.Filter(q)
 		local n = 0
 		for _, e in ipairs(page.LooseEntries) do
@@ -586,9 +551,6 @@ local function buildCard(page, o)
 	return Root, card
 end
 
--- ============================================
--- CONFIG SYSTEM
--- ============================================
 function BulbGui:_initConfigSystem(config)
 	self._savedFlags = {}
 	local folderName = config.FolderName or "TumblrConfigs"
@@ -636,9 +598,6 @@ function BulbGui:_conn(signal, fn)
 	return c
 end
 
--- ============================================
--- UKURAN
--- ============================================
 function BulbGui:_calculateSize(config)
 	local viewport = workspace.CurrentCamera.ViewportSize
 	local desktop = viewport.Y > 1000 and viewport.X > 1000
@@ -683,9 +642,6 @@ function BulbGui:_saveWindowState()
 	if self._saveConfig then pcall(function() self:_saveConfig() end) end
 end
 
--- ============================================
--- WINDOW SHOW / HIDE / MINIMIZE
--- ============================================
 function BulbGui:_hideWindow()
 	local S = self.Shadow
 	if not S or not S.Visible or self._animating then return end
@@ -746,9 +702,6 @@ function BulbGui:_setMinimized(state)
 	end
 end
 
--- ============================================
--- LAYOUT RESPONSIF
--- ============================================
 function BulbGui:_applyLayout()
 	if self._animating or not self.Main then return end
 	local w = self.Main.AbsoluteSize.X
@@ -782,9 +735,6 @@ function BulbGui:_applyLayout()
 	for _, e in ipairs(self._entries) do e.Page.SetCompact(compact) end
 end
 
--- ============================================
--- WINDOW
--- ============================================
 function BulbGui:_createScreenGui()
 	local ScreenGui = Instance.new("ScreenGui")
 	ScreenGui.Name = "BulbGui"
@@ -861,9 +811,6 @@ function BulbGui:_setupDraggableWindow(handles, Shadow)
 	end)
 end
 
--- ============================================
--- TOGGLE BUTTON (bulat, bisa di-drag)
--- ============================================
 function BulbGui:_createToggleButton(ScreenGui)
 	local ToggleBtn = Instance.new("TextButton")
 	ToggleBtn.Name = "ToggleBtn"
@@ -1036,9 +983,6 @@ function BulbGui:_showLoadNotification(config, name)
 	end
 end
 
--- ============================================
--- SIDEBAR NAV
--- ============================================
 function BulbGui:_registerNav(name, icon, page, order, holder, autoClick)
 	local active = false
 	local Btn = Instance.new("TextButton")
@@ -1150,9 +1094,6 @@ function BulbGui:_search(q)
 	end
 end
 
--- ============================================
--- INIT
--- ============================================
 function BulbGui:Init(config)
 	if CoreGui:FindFirstChild("BulbGui") then
 		CoreGui.BulbGui:Destroy()
@@ -1184,7 +1125,7 @@ function BulbGui:Init(config)
 	local ScreenGui = self:_createScreenGui()
 	local Shadow = self:_createShadow(ScreenGui, size)
 
-	do -- restore ukuran sesi sebelumnya; selalu muncul di tengah layar
+	do
 		local viewport = workspace.CurrentCamera.ViewportSize
 		local w, h = self:_savedSizeOrDefault()
 		Shadow.Size = UDim2.new(0, w, 0, h)
@@ -1195,7 +1136,6 @@ function BulbGui:Init(config)
 	local ui = {}
 	self._ui = ui
 
-	-- garis aksen tipis di atas window
 	local Glow = Instance.new("Frame")
 	Glow.Size = UDim2.new(1, -40, 0, 1)
 	Glow.Position = UDim2.new(0, 20, 0, 0)
@@ -1205,7 +1145,6 @@ function BulbGui:Init(config)
 	bind(Glow, "BackgroundColor3", "acc")
 	Glow.Parent = Main
 
-	-- ============ SIDEBAR ============
 	local Sidebar = Instance.new("Frame")
 	Sidebar.Name = "Sidebar"
 	Sidebar.Size = UDim2.new(0, SB_W, 1, 0)
@@ -1274,7 +1213,6 @@ function BulbGui:Init(config)
 		TextXAlignment = LEFT, TextTruncate = Enum.TextTruncate.AtEnd,
 	}, "dim")
 
-	-- list nav (tab buatan user)
 	local NavList = Instance.new("ScrollingFrame")
 	NavList.Name = "NavList"
 	NavList.Size = UDim2.new(1, -16, 1, -(NAV_Y + SET_H))
@@ -1290,7 +1228,6 @@ function BulbGui:Init(config)
 	NL.SortOrder = Enum.SortOrder.LayoutOrder
 	NL.Parent = NavList
 
-	-- tab Settings: tetap di bawah sidebar
 	local toggleKey = config.ToggleKey or Enum.KeyCode.RightShift
 	local SetLine = Instance.new("Frame")
 	SetLine.Size = UDim2.new(1, -24, 0, 1)
@@ -1305,7 +1242,6 @@ function BulbGui:Init(config)
 	SettingsHolder.BackgroundTransparency = 1
 	SettingsHolder.Parent = Sidebar
 
-	-- ============ WORKSPACE ============
 	local Workspace = Instance.new("Frame")
 	Workspace.Name = "Workspace"
 	Workspace.Size = UDim2.new(1, -SB_W, 1, 0)
@@ -1325,7 +1261,6 @@ function BulbGui:Init(config)
 	bind(TopLine, "BackgroundColor3", "border")
 	TopLine.Parent = TopBar
 
-	-- search bar
 	local SearchBar = Instance.new("Frame")
 	SearchBar.Size = UDim2.new(1, -194, 0, 32)
 	SearchBar.Position = UDim2.new(0, 14, 0.5, 0)
@@ -1375,7 +1310,6 @@ function BulbGui:Init(config)
 	bind(Hint, "BackgroundColor3", "bg850")
 	corner(Hint, 5)
 
-	-- kontrol kanan
 	local Controls = Instance.new("Frame")
 	Controls.Size = UDim2.new(0, 166, 1, 0)
 	Controls.Position = UDim2.new(1, -12, 0, 0)
@@ -1421,7 +1355,6 @@ function BulbGui:Init(config)
 	MinBtn.MouseButton1Click:Connect(function() self:_setMinimized(not self._minimized) end)
 	CloseBtn.MouseButton1Click:Connect(function() self:_hideWindow() end)
 
-	-- container halaman
 	local Pages = Instance.new("Frame")
 	Pages.Name = "Pages"
 	Pages.Size = UDim2.new(1, 0, 1, -TOP_H)
@@ -1451,10 +1384,8 @@ function BulbGui:Init(config)
 	ui.BrandText, ui.BrandIcon = BrandText, BrandIcon
 	ui.Perf, ui.Controls, ui.SearchBar, ui.SearchBox, ui.Hint = Perf, Controls, SearchBar, SearchBox, Hint
 
-	-- layout responsif
 	self:_conn(Main:GetPropertyChangedSignal("AbsoluteSize"), function() self:_applyLayout() end)
 
-	-- FPS | ping
 	local frames, acc = 0, 0
 	self:_conn(RunService.RenderStepped, function(dt)
 		frames += 1
@@ -1473,7 +1404,6 @@ function BulbGui:Init(config)
 		end
 	end)
 
-	-- Ctrl + K = fokus search
 	self:_conn(UIS.InputBegan, function(input, gpe)
 		if input.KeyCode == Enum.KeyCode.K and (UIS:IsKeyDown(Enum.KeyCode.LeftControl) or UIS:IsKeyDown(Enum.KeyCode.RightControl)) then
 			if Shadow.Visible then
@@ -1485,7 +1415,6 @@ function BulbGui:Init(config)
 		end
 	end)
 
-	-- halaman Settings (tab bawaan, selalu paling bawah)
 	local SettingsPage = buildPage(Pages, "Settings", "Manage theme, shortcuts and interface preferences.")
 	self.SettingsContent = SettingsPage.Loose
 	self.SettingsEntry = self:_registerNav("Settings", 10723407389, SettingsPage, 10000, SettingsHolder, true)
@@ -1533,9 +1462,6 @@ function BulbGui:SetTheme(name)
 	end
 end
 
--- ============================================
--- NOTIFY
--- ============================================
 function BulbGui:Notify(config)
 	config = config or {}
 	local title = config.Title or "Notification"
@@ -1632,9 +1558,6 @@ function BulbGui:Notify(config)
 	end)
 end
 
--- ============================================
--- CONFIRMATION
--- ============================================
 function BulbGui:ConfirmationAction(config)
 	config = config or {}
 	local title = config.Title or "Confirmation"
@@ -1758,9 +1681,6 @@ function BulbGui:ConfirmationAction(config)
 	end)
 end
 
--- ============================================
--- TAB = item sidebar + halaman
--- ============================================
 function BulbGui:CreateTab(nameOrConfig, iconId)
 	local config = {}
 	if typeof(nameOrConfig) == "table" then
@@ -1777,7 +1697,6 @@ function BulbGui:CreateTab(nameOrConfig, iconId)
 	entry.Content = page.Loose
 	table.insert(self.Tabs, entry)
 
-	-- tahan tombol tab 0.8 detik = hapus tab
 	local held = false
 	local holdTimer = nil
 	local function requestDelete()
@@ -1850,15 +1769,11 @@ function BulbGui:CreateTab(nameOrConfig, iconId)
 	})
 end
 
--- Hentikan "masuk ke section" supaya elemen berikutnya langsung di halaman
 function BulbGui:EndSection(config)
 	local container = (config and config.Parent) or self.TabContent
 	if container then currentBody[container] = nil end
 end
 
--- ============================================
--- SETTINGS WRAPPERS
--- ============================================
 function BulbGui:CreateSettingsSection(name)
 	if type(name) == "table" then
 		name.Parent = self.SettingsContent
@@ -1902,11 +1817,6 @@ function BulbGui:CreateSettingsKeybind(config)
 	return self:CreateKeybind(config)
 end
 
--- ============================================
--- SECTION = kartu bento di dalam halaman tab
--- Elemen yang dibuat setelah ini masuk ke kartu ini.
--- Opsi: Collapsed = true -> kartu awalnya tertutup
--- ============================================
 function BulbGui:CreateSection(config)
 	local isTable = type(config) == "table"
 	local text = (isTable and config.Name) or (type(config) == "string" and config) or "Section"
@@ -1940,9 +1850,6 @@ function BulbGui:CreateSection(config)
 	}
 end
 
--- ============================================
--- BUTTON
--- ============================================
 function BulbGui:CreateButton(config)
 	config = config or {}
 	local text = config.Name or "Button"
@@ -1989,7 +1896,6 @@ function BulbGui:CreateButton(config)
 	Btn.Parent = ButtonFrame
 	corner(Btn, 10)
 
-	-- mode tampilan: n = 1 -> satu baris (tombol di kanan); n > 1 -> judul di atas, tombol di bawah
 	local function applyMode(n)
 		if not compact then return end
 		stacked = n > 1
@@ -2071,9 +1977,6 @@ function BulbGui:CreateButton(config)
 	}
 end
 
--- ============================================
--- PARAGRAPH
--- ============================================
 function BulbGui:CreateParagraph(config)
 	config = config or {}
 	local title = config.Title or "Paragraph"
@@ -2195,9 +2098,6 @@ function BulbGui:CreateParagraph(config)
 	return ParaFrame, TitleLabel, ContentLabel, controller
 end
 
--- ============================================
--- INPUT
--- ============================================
 function BulbGui:CreateInput(config)
 	config = config or {}
 	local text = config.Name or "Input"
@@ -2288,9 +2188,6 @@ function BulbGui:CreateInput(config)
 	}
 end
 
--- ============================================
--- TOGGLE
--- ============================================
 function BulbGui:CreateToggle(config)
 	config = config or {}
 	local text = config.Name or "Toggle"
@@ -2338,7 +2235,6 @@ function BulbGui:CreateToggle(config)
 	Circle.Parent = ToggleBtn
 	corner(Circle, 7)
 
-	-- mode tampilan: n = 1 -> satu baris (switch di kanan); n > 1 -> judul di atas, switch di bawah (tengah)
 	local function applyMode(n)
 		if not compact then return end
 		if n > 1 then
@@ -2392,9 +2288,6 @@ function BulbGui:CreateToggle(config)
 	}
 end
 
--- ============================================
--- SLIDER
--- ============================================
 function BulbGui:CreateSlider(config)
 	config = config or {}
 	local text = config.Name or "Slider"
@@ -2432,7 +2325,6 @@ function BulbGui:CreateSlider(config)
 	ValueBox.Parent = SliderFrame
 	corner(ValueBox, 7)
 
-	-- Area sentuh lebih besar
 	local Hit = Instance.new("Frame")
 	Hit.Size = UDim2.new(1, -28, 0, 24)
 	Hit.Position = UDim2.new(0, 14, 1, -28)
@@ -2533,9 +2425,6 @@ function BulbGui:CreateSlider(config)
 	}
 end
 
--- ============================================
--- DROPDOWN (chip, membuka ke bawah di dalam kartu & mendorong layout)
--- ============================================
 function BulbGui:CreateDropdown(config)
 	config = config or {}
 	local text = config.Name or "Dropdown"
@@ -2599,7 +2488,6 @@ function BulbGui:CreateDropdown(config)
 		Size = UDim2.new(0, 18, 1, 0), Position = UDim2.new(1, -22, 0, 0), Text = "v", Font = F_B, TextSize = 12,
 	}, "dim")
 
-	-- daftar chip
 	local OptionFrame = Instance.new("Frame")
 	OptionFrame.Size = UDim2.new(1, 0, 0, 0)
 	OptionFrame.AutomaticSize = Enum.AutomaticSize.Y
@@ -2804,9 +2692,6 @@ function BulbGui:CreateDropdown(config)
 	}
 end
 
--- ============================================
--- KEYBIND
--- ============================================
 function BulbGui:CreateKeybind(config)
 	config = config or {}
 	local text = config.Name or "Keybind"
