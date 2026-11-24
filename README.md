@@ -1,4 +1,4 @@
-# Roblox GUI (Bulb API)
+# Roblox GUI
 
 A universal, modular Roblox GUI library built on the **Bulb API**. Every skin or theme (BulbGui, LuaCxre, JHGui, or your own) shares the same function names, so you can swap the visual style by changing only the loader URL, with no script changes.
 
