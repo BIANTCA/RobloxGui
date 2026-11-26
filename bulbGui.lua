@@ -13,6 +13,23 @@ local THEMES = {
 	{Name = "Obsidian Cyber", bg950 = "#050810", bg900 = "#0A0F1C", bg850 = "#0F1629", bg800 = "#141D35", border = "#1E293B", acc = "#06B6D4", acc2 = "#6366F1"},
 	{Name = "Emerald Matrix", bg950 = "#040A08", bg900 = "#08120F", bg850 = "#0D1B17", bg800 = "#12251F", border = "#1B362D", acc = "#10B981", acc2 = "#14B8A6"},
 	{Name = "Midnight Crimson", bg950 = "#0B0507", bg900 = "#14090D", bg850 = "#1D0E14", bg800 = "#27131B", border = "#3B1D29", acc = "#F43F5E", acc2 = "#F59E0B"},
+	{Name = "Royal Violet", bg950 = "#08060F", bg900 = "#0F0B1C", bg850 = "#161129", bg800 = "#1E1736", border = "#2E2450", acc = "#A855F7", acc2 = "#EC4899"},
+	{Name = "Sunset Amber", bg950 = "#0A0705", bg900 = "#130D08", bg850 = "#1C130C", bg800 = "#261A11", border = "#3A2818", acc = "#F59E0B", acc2 = "#EF4444"},
+	{Name = "Ocean Deep", bg950 = "#040A12", bg900 = "#08111D", bg850 = "#0C1828", bg800 = "#112035", border = "#1B3250", acc = "#3B82F6", acc2 = "#06B6D4"},
+	{Name = "Rose Quartz", bg950 = "#0C0609", bg900 = "#160B11", bg850 = "#20101A", bg800 = "#2B1523", border = "#43213A", acc = "#EC4899", acc2 = "#A855F7"},
+	{Name = "Arctic Frost", bg950 = "#060B10", bg900 = "#0B131B", bg850 = "#101C27", bg800 = "#162636", border = "#223A50", acc = "#7DD3FC", acc2 = "#A5B4FC"},
+	{Name = "Toxic Lime", bg950 = "#060A04", bg900 = "#0C1308", bg850 = "#131D0D", bg800 = "#1A2812", border = "#2A3F1C", acc = "#84CC16", acc2 = "#FACC15"},
+	{Name = "Neon Magenta", bg950 = "#0A040C", bg900 = "#130718", bg850 = "#1C0B24", bg800 = "#260F31", border = "#3D1A4E", acc = "#D946EF", acc2 = "#22D3EE"},
+	{Name = "Graphite Mono", bg950 = "#060606", bg900 = "#0E0E0F", bg850 = "#151516", bg800 = "#1D1D1F", border = "#2C2C2F", acc = "#E4E4E7", acc2 = "#A1A1AA"},
+	{Name = "Golden Noir", bg950 = "#090705", bg900 = "#120E08", bg850 = "#1B150C", bg800 = "#251D11", border = "#3A2E19", acc = "#EAB308", acc2 = "#F97316"},
+	{Name = "Crimson Blood", bg950 = "#0A0404", bg900 = "#140808", bg850 = "#1E0C0C", bg800 = "#281111", border = "#401B1B", acc = "#DC2626", acc2 = "#F97316"},
+	{Name = "Mint Breeze", bg950 = "#050A0A", bg900 = "#0A1313", bg850 = "#0F1C1C", bg800 = "#152626", border = "#213B3B", acc = "#5EEAD4", acc2 = "#86EFAC"},
+	{Name = "Indigo Night", bg950 = "#05060F", bg900 = "#0A0C1C", bg850 = "#0F1229", bg800 = "#151937", border = "#232A56", acc = "#6366F1", acc2 = "#8B5CF6"},
+	{Name = "Cherry Blossom", bg950 = "#0B0709", bg900 = "#150E12", bg850 = "#1F151B", bg800 = "#291C24", border = "#40293A", acc = "#F9A8D4", acc2 = "#FDA4AF"},
+	{Name = "Copper Rust", bg950 = "#0A0605", bg900 = "#140D0A", bg850 = "#1D1410", bg800 = "#281C16", border = "#3F2C22", acc = "#FB923C", acc2 = "#D97706"},
+	{Name = "Cyber Yellow", bg950 = "#0A0A04", bg900 = "#131308", bg850 = "#1C1C0D", bg800 = "#262612", border = "#3D3D1B", acc = "#FDE047", acc2 = "#22D3EE"},
+	{Name = "Aurora Teal", bg950 = "#040B0D", bg900 = "#08141A", bg850 = "#0D1E26", bg800 = "#122831", border = "#1D3F4D", acc = "#2DD4BF", acc2 = "#818CF8"},
+	{Name = "Slate Steel", bg950 = "#070A0E", bg900 = "#0D121A", bg850 = "#131A25", bg800 = "#1A2332", border = "#2A374B", acc = "#94A3B8", acc2 = "#38BDF8"},
 }
 
 local T = {
